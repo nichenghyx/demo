@@ -1,0 +1,36 @@
+FROM centos
+MAINTAINER heyx 1064042411@qq.co,
+#安装maven
+RUN yum -y install wget
+RUN mkdir /opt/tools/
+RUN wget -P /opt/tools/ http://apache-mirror.rbc.ru/pub/apache/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.tar.gz
+RUN tar zxvf /opt/tools/apache-maven-3.5.4-bin.tar.gz -C /opt/tools
+#安装jdk
+RUN wget --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/8u141-b15/336fa29ff2bb4ef291e347e091f7f4a7/jdk-8u141-linux-x64.tar.gz"
+RUN mv jdk-8u141-linux-x64.tar.gz /opt/tools/
+RUN tar zxvf /opt/tools/jdk-8u141-linux-x64.tar.gz -C /opt/tools
+RUN rm -rf /opt/tools/apache-maven-3.5.4-bin.tar.gz /opt/tools/jdk-8u181-linux-x64.tar.gz
+
+ENV JAVA_HOME /opt/tools/jdk1.8.0_141
+ENV M3_HOME /opt/tools/apache-maven-3.5.4
+ENV PATH $PATH:$JAVA_HOME/bin:$M3_HOME/bin
+ENV RUN_MODE test
+
+ADD pom.xml /tmp/build/
+RUN cd /tmp/build && mvn -q dependency:resolve
+
+ADD src /tmp/build/src
+
+ADD startup.sh /
+
+RUN cd /tmp/build && mvn -q -DskipTests=true package \
+     #拷贝编译结果到指定目录
+     && mv target/*.jar /app.jar \
+     #清理编译痕迹
+     && cd / && rm -rf /tmp/build
+
+VOLUME /tmp
+
+EXPOSE 2018
+
+ENTRYPOINT ["sh", "/startup.sh"]
