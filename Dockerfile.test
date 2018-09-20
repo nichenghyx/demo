@@ -1,5 +1,5 @@
 FROM centos
-MAINTAINER heyx 1064042411@qq.co,
+MAINTAINER heyx 1064042411@qq.com
 #安装maven
 RUN yum -y install wget
 RUN mkdir /opt/tools/
